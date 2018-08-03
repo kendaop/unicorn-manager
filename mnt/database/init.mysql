@@ -1,0 +1,10 @@
+USE unicorn_manager;
+CREATE TABLE `unicorns` (
+    `id` INT(11) NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(50) NOT NULL COLLATE 'utf8_bin',
+    `location` ENUM('barn','pasture','corral') NOT NULL COLLATE 'utf8_bin',
+    PRIMARY KEY (`id`)
+)
+COLLATE='utf8_bin'
+ENGINE=InnoDB
+;

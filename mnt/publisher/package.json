@@ -1,0 +1,9 @@
+{
+    "name": "UnicornManager-Publisher",
+    "version": "1.0.0",
+    "description": "A unicorn manager.",
+    "author": "Kendall Parks",
+    "dependencies": {
+      "amqplib": "^0.5.2"
+    }
+}

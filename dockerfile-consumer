@@ -1,0 +1,6 @@
+FROM node:10.7.0-alpine
+
+COPY mnt/consumer /usr/local/unicorn
+WORKDIR /usr/local/unicorn
+RUN npm install amqplib --save && npm install mysql --save && apk add mysql-client
+CMD ["/bin/sh"]

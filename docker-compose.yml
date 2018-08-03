@@ -1,0 +1,36 @@
+version: '3'
+services:
+  rabbitmq_server:
+    image: rabbitmq:3.7.7-management-alpine
+    hostname: unicorn
+    
+  rabbitmq_publisher:
+    build:
+      context: .
+      dockerfile: dockerfile-publisher
+    image: unicorn-publisher:v1
+    depends_on:
+      - rabbitmq_server
+    tty: true
+    ports: 
+      - "3000:3000"
+
+  rabbitmq_consumer:
+    build:
+      context: .
+      dockerfile: dockerfile-consumer
+    image: unicorn-consumer:v1
+    depends_on:
+      - rabbitmq_server
+      - database
+    tty: true
+  
+  database:
+    build:
+      context: .
+      dockerfile: dockerfile-database
+    image: unicorn-database:v1
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: unicorn_manager
