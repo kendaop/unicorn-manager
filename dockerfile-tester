@@ -1,0 +1,6 @@
+FROM node:10.7.0-alpine
+
+COPY mnt/ /usr/local/unicorn
+WORKDIR /usr/local/unicorn/tester
+RUN apk add mysql-client && npm install && cd ../consumer && npm install && cd ../publisher && npm install
+CMD ["/bin/sh"]

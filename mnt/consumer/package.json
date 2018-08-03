@@ -4,7 +4,9 @@
     "description": "A unicorn manager.",
     "author": "Kendall Parks",
     "dependencies": {
-      "amqplib": "^0.5.2",
-      "mysql": "^2.16.0"
+        "amqplib": "^0.5.2",
+        "chai": "^4.1.2",
+        "mocha": "^5.2.0",
+        "mysql": "^2.16.0"
     }
 }

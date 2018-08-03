@@ -1,0 +1,10 @@
+{
+    "name": "UnicornManager-Tester",
+    "version": "1.0.0",
+    "description": "A unicorn manager.",
+    "author": "Kendall Parks",
+    "dependencies": {
+      "amqplib": "^0.5.2",
+      "mysql": "^2.16.0"
+    }
+}
