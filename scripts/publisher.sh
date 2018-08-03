@@ -1,3 +1,3 @@
 #!/bin/sh
 
-docker exec -ti unicornmanager_rabbitmq_publisher_1 ash
+docker exec -ti unicorn-manager_rabbitmq_publisher_1 ash
