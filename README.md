@@ -13,8 +13,8 @@ installed on your host machine.
 The most common actions necessary to interact with this app are included in 
 helper scripts, to help you get started quickly.
 
-Pull and build the Docker images: `./scripts/build.sh`
+1) Pull and build the Docker images: `./scripts/build.sh`
 
-Launch the containers: `./scripts/run.sh`
+2) Launch the containers: `./scripts/run.sh`
 
 The app is now up and running!

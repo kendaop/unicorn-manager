@@ -108,7 +108,7 @@ createMoveUnicornConsumerChannel = function(conn) {
 // Channel for consuming SEE UNICORNS messages.
 createSeeUnicornsConsumerChannel = function(conn) {
   conn.createChannel(function(err, ch) {
-    var q = 'see_uniqueue';
+    var q = 'see-uniqueue';
     
     ch.assertQueue(q, {durable: false});
     ch.prefetch(1);

@@ -73,7 +73,7 @@ createSeeUnicornsPublisherChannel = function(conn) {
       }, {noAck: true});
       
       ch.sendToQueue(
-        'see_uniqueue',
+        'see-uniqueue',
         Buffer.from(JSON.stringify({ action: "see" })),
         { correlationId: corrId, replyTo: q.queue }
       );
