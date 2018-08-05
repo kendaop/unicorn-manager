@@ -11,7 +11,7 @@ amqp.connect('amqp://guest:guest@rabbitmq_server:5672', function(err, conn) {
   createSeeUnicornsConsumerChannel(conn);
 });
 
-queryDb = function(query) {
+queryDb = function(query, func) {
   var db = mysql.createConnection({
     host: 'database',
     user: 'root',
@@ -22,9 +22,7 @@ queryDb = function(query) {
   db.connect((err) => {
     if (err) throw err;
 
-    db.query(query, function(err, result, fields) {
-      if (err) throw err;
-    });
+    db.query(query, func);
   });
 };
 
@@ -38,12 +36,19 @@ createAddUnicornConsumerChannel = function(conn) {
     ch.consume(q, function(msg) {
       var content = JSON.parse(msg.content);
       console.log(" [x] Received %s", JSON.stringify(content));
-
-      queryDb(`
-        INSERT INTO unicorns (\`name\`, \`location\`)
-        VALUES ('${content.name}', '${content.location}');
-      `);
-      ch.ack(msg);
+      var location = content.location.toLowerCase();
+      
+      if (locations.includes(location)) {
+        queryDb(`
+          INSERT INTO unicorns (\`name\`, \`location\`)
+          VALUES ('${content.name}', '${content.location}');
+        `, function() {
+          ch.ack(msg);
+        });
+      } else {
+        ch.nack(msg, false, false);
+        console.log(" [!] Nacked %s", msg.content.toString());
+      }
     });
   });
 };

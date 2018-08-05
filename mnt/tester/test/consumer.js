@@ -28,9 +28,10 @@ describe('hooks', function() {
     db.end();
   });
 
-  beforeEach(async function() {
-    await db.query('TRUNCATE TABLE `unicorns`;', function(err) {
+  beforeEach(function(done) {
+    db.query('TRUNCATE TABLE `unicorns`;', function(err) {
       if (err) throw err;
+      done();
     });
   });
 
@@ -120,7 +121,7 @@ describe('hooks', function() {
         
         conn.createChannel().then(function(ch) {
           return ch.assertQueue(q, {durable: true}).then(function() {
-            // Send the request to ADD UNICORN
+            // Send the request to ADD UNICORN.
             return ch.sendToQueue(q, Buffer.from(JSON.stringify(data)));
           }).then(function() {
             setTimeout(function() {
