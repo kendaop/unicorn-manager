@@ -2,15 +2,36 @@
 
 var amqp = require('amqplib/callback_api');
 
+var action, args = [];
+process.argv.forEach(function (val, index) {
+  if (index === 2) {
+    action = val;
+  }
+  
+  if (index > 2) {
+    args.push(val);
+  }
+});
+
 amqp.connect('amqp://guest:guest@rabbitmq_server:5672', function(err, conn) {
   if(err) {
     console.log(err);
     process.exit(1);
   }
   
-  createAddUnicornPublisherChannel(conn);
-  createMoveUnicornPublisherChannel(conn);
-  createSeeUnicornsPublisherChannel(conn);
+  switch(action) {
+    case "add":
+      addUnicorn(conn, process.argv[3], process.argv[4]);
+      break;
+      
+    case "move":
+      moveUnicorn(conn, process.argv[3], process.argv[4]);
+      break;
+    
+    case "see":
+      seeUnicorns(conn, process.argv[3], process.argv[4]);
+      break;
+  }
   
   setTimeout(function() {
       conn.close();
@@ -18,12 +39,12 @@ amqp.connect('amqp://guest:guest@rabbitmq_server:5672', function(err, conn) {
   }, 500);
 });
 
-createAddUnicornPublisherChannel = function(conn) {
+addUnicorn = function(conn, name, location) {
   conn.createChannel(function(err, ch) {
     var q = 'add-uniqueue';
     var msg = {
-      name: 'Bill',
-      location: 'barn',
+      name: name,
+      location: location,
       action: 'add'
     };
 
@@ -33,12 +54,12 @@ createAddUnicornPublisherChannel = function(conn) {
   });
 };
 
-createMoveUnicornPublisherChannel = function(conn) {
+moveUnicorn = function(conn, id, location) {
   conn.createChannel(function(err, ch) {
     var q = 'move-uniqueue';
     var msg = {
-      id: 1,
-      location: 'barn',
+      id: id,
+      location: location,
       action: 'move'
     };
 
@@ -48,7 +69,7 @@ createMoveUnicornPublisherChannel = function(conn) {
   });
 };
 
-createSeeUnicornsPublisherChannel = function(conn) {
+seeUnicorns = function(conn) {
   conn.createChannel(function(err, ch) {
     ch.assertQueue('', {exclusive: true}, function(err, q) {
       console.log(' [x] Requesting location of unicorns.');

@@ -11,7 +11,24 @@ amqp.connect('amqp://guest:guest@rabbitmq_server:5672', function(err, conn) {
   createSeeUnicornsConsumerChannel(conn);
 });
 
-//  Channel for consuming ADD UNICORN messages.
+queryDb = function(query) {
+  var db = mysql.createConnection({
+    host: 'database',
+    user: 'root',
+    password: 'example',
+    database: 'unicorn_manager'
+  });
+
+  db.connect((err) => {
+    if (err) throw err;
+
+    db.query(query, function(err, result, fields) {
+      if (err) throw err;
+    });
+  });
+};
+
+// Channel for consuming ADD UNICORN messages.
 createAddUnicornConsumerChannel = function(conn) {
   conn.createChannel(function(err, ch) {
     var q = 'add-uniqueue';
@@ -20,35 +37,17 @@ createAddUnicornConsumerChannel = function(conn) {
     console.log(" [*] AddUnicorn channel is waiting for messages.", q);
     ch.consume(q, function(msg) {
       var content = JSON.parse(msg.content);
-      
+
       if (content.hasOwnProperty("action") && 
-          content.action.toLowerCase() === 'add'
-      ) {
+          content.action.toLowerCase() === 'add') 
+      {
         console.log(" [x] Received %s", JSON.stringify(content));
-
-        var db = mysql.createConnection({
-          host: 'database',
-          user: 'root',
-          password: 'example',
-          database: 'unicorn_manager'
-        });
-
-        db.connect((err) => {
-          if (err) throw err;
-          var content = JSON.parse(msg.content);
-          var name = content.name;
-          var location = content.location;
-
-          db.query(`
-            INSERT INTO unicorns (\`name\`, \`location\`)
-            VALUES ('${name}', '${location}');
-          `, 
-          function(err, result, fields) {
-            if (err) throw err;
-          });
-          ch.ack(msg);
-        });
-      }
+        queryDb(`
+          INSERT INTO unicorns (\`name\`, \`location\`)
+          VALUES ('${content.name}', '${content.location}');
+        `);
+        ch.ack(msg);
+      };
     });
   });
 };
@@ -77,26 +76,12 @@ createMoveUnicornConsumerChannel = function(conn) {
         var id = Number(content.id);
         
         if(locations.includes(newLocation)) {
-          var db = mysql.createConnection({
-            host: 'database',
-            user: 'root',
-            password: 'example',
-            database: 'unicorn_manager'
-          });
-
-          db.connect((err) => {
-            if (err) throw err;
-
-            db.query(`
-              UPDATE unicorns 
-              SET \`location\` = "${newLocation}"
-              WHERE \`id\` = ${id};
-            `, 
-            function(err, result, fields) {
-              if (err) throw err;
-            });
-            ch.ack(msg);
-          });
+          queryDb(`
+            UPDATE unicorns 
+            SET \`location\` = "${newLocation}"
+            WHERE \`id\` = ${id};
+          `);
+          ch.ack(msg);
         } else {
           throw "Invalid location";
         }
@@ -137,7 +122,7 @@ createSeeUnicornsConsumerChannel = function(conn) {
           if (err) throw err;
           
           db.query(
-            "SELECT `name`, `location` FROM `unicorns`;", 
+            "SELECT `id`, `name`, `location` FROM `unicorns`;", 
             function(err, result, fields) {
               if (err) throw err;
 
