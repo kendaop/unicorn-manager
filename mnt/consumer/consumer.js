@@ -78,10 +78,12 @@ createMoveUnicornConsumerChannel = function(conn) {
             UPDATE unicorns 
             SET \`location\` = "${newLocation}"
             WHERE \`id\` = ${id};
-          `);
-          ch.ack(msg);
+          `, function() {
+            ch.ack(msg);
+          });
         } else {
-          throw "Invalid location";
+          ch.nack(msg, false, false);
+          console.log(" [!] Nacked %s", msg.content.toString());
         }
       }
     });
