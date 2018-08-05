@@ -120,20 +120,69 @@ describe('hooks', function() {
         };
         
         conn.createChannel().then(function(ch) {
-          return ch.assertQueue(q, {durable: true}).then(async function() {
+          return ch.assertQueue(q, {durable: true}).then(function() {
             return ch.sendToQueue(q, Buffer.from(JSON.stringify(data)));
           }).then(function() {
-            db.query("SELECT * FROM unicorns;", function(err, res) {
-              if (err) throw err;
+            setTimeout(function() {
+              db.query("SELECT * FROM unicorns;", function(err, res) {
+                if (err) throw err;
 
-              var result = JSON.parse(JSON.stringify(res));
-              assert.lengthOf(result, 1);
-              assert.deepInclude(result, data);
-              done();
-            });
+                var result = JSON.parse(JSON.stringify(res));
+                assert.lengthOf(result, 1);
+                assert.deepInclude(result, data);
+                done();
+              });
+            }, 150);
           });
         });
       });
     });
+    
+    describe('# MOVE UNICORN', function() {
+      
+      var q = 'move-uniqueue';
+      var testData = {
+        id: 1,
+        name: 'TEST-1',
+        location: 'corral'
+      };
+      var actionData = {
+        id: testData.id,
+        location: 'barn'
+      };
+      var assertData = {
+        id: testData.id,
+        name: testData.name,
+        location: actionData.location
+      };
+      
+      it('should change a unicorn\'s location in the database', function(done) {
+        
+        // Insert a test unicorn into the database.
+        db.query(`
+          INSERT INTO \`unicorns\` (id, name, location) 
+          VALUES (${testData.id}, "${testData.name}", "${testData.location}");
+        `, function() {
+          conn.createChannel().then(function(ch) {
+            ch.assertQueue(q, {durable: true}).then(function() {
+              // Send message to MOVE UNICORN.
+              return ch.sendToQueue(q, Buffer.from(JSON.stringify(actionData)));
+            }).then(function() {
+              setTimeout(function() {
+                db.query(`SELECT * FROM \`unicorns\``, function(err, res) {
+                  if (err) throw err;
+
+                  var result = JSON.parse(JSON.stringify(res));
+                  assert.deepInclude(result, assertData);
+                  done();
+                });
+              }, 150);
+            });
+          });
+        });
+        
+      });
+    });
+    
   });
 });
