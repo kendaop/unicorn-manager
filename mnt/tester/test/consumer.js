@@ -34,9 +34,6 @@ describe('hooks', function() {
     });
   });
 
-  afterEach(function() {
-  });
-
   describe('Consumer', function() {
     describe('# SEE UNICORNS', function() {
       
@@ -112,6 +109,8 @@ describe('hooks', function() {
     describe('# ADD UNICORN', function() {
       
       it('should add a unicorn to the database', function(done) {
+        
+        // Test data
         var q = 'add-uniqueue';
         var data = {
           id: 1,
@@ -121,6 +120,7 @@ describe('hooks', function() {
         
         conn.createChannel().then(function(ch) {
           return ch.assertQueue(q, {durable: true}).then(function() {
+            // Send the request to ADD UNICORN
             return ch.sendToQueue(q, Buffer.from(JSON.stringify(data)));
           }).then(function() {
             setTimeout(function() {
@@ -128,8 +128,11 @@ describe('hooks', function() {
                 if (err) throw err;
 
                 var result = JSON.parse(JSON.stringify(res));
+                
+                // Make assertions on the size and correctness of the returned array.
                 assert.lengthOf(result, 1);
                 assert.deepInclude(result, data);
+                
                 done();
               });
             }, 150);
@@ -140,23 +143,25 @@ describe('hooks', function() {
     
     describe('# MOVE UNICORN', function() {
       
-      var q = 'move-uniqueue';
-      var testData = {
-        id: 1,
-        name: 'TEST-1',
-        location: 'corral'
-      };
-      var actionData = {
-        id: testData.id,
-        location: 'barn'
-      };
-      var assertData = {
-        id: testData.id,
-        name: testData.name,
-        location: actionData.location
-      };
-      
       it('should change a unicorn\'s location in the database', function(done) {
+        
+        // Test data
+        var testData = {
+          id: 1,
+          name: 'TEST-1',
+          location: 'corral'
+        };
+        var actionData = {
+          id: testData.id,
+          location: 'barn'
+        };
+        var assertData = {
+          id: testData.id,
+          name: testData.name,
+          location: actionData.location
+        };
+
+        var q = 'move-uniqueue';
         
         // Insert a test unicorn into the database.
         db.query(`
@@ -180,7 +185,6 @@ describe('hooks', function() {
             });
           });
         });
-        
       });
     });
     
