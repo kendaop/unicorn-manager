@@ -95,7 +95,7 @@ seeUnicorns = function(conn) {
       
       ch.sendToQueue(
         'see-uniqueue',
-        Buffer.from(JSON.stringify({ action: "see" })),
+        Buffer.from(JSON.stringify({ })),
         { correlationId: corrId, replyTo: q.queue }
       );
     });

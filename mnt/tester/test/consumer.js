@@ -18,9 +18,6 @@ describe('hooks', function() {
     
     await db.connect((err) => {
       if (err) throw err;
-      db.query('TRUNCATE TABLE `unicorns`;', function(err) {
-        if (err) throw err;
-      });
     });
     
     conn = await amqp.connect('amqp://guest:guest@rabbitmq_server:5672');
@@ -31,14 +28,17 @@ describe('hooks', function() {
     db.end();
   });
 
-  beforeEach(function() {
+  beforeEach(async function() {
+    await db.query('TRUNCATE TABLE `unicorns`;', function(err) {
+      if (err) throw err;
+    });
   });
 
   afterEach(function() {
   });
 
   describe('Consumer', function() {
-    describe('#SeeUnicorns', function() {
+    describe('# SEE UNICORNS', function() {
       
       it('should return empty set when no unicorns exist', function(done) {
         conn.createChannel().then(function(ch) {
@@ -55,7 +55,7 @@ describe('hooks', function() {
               // Send the request to SEE UNICORNS.
               ch.sendToQueue(
                 'see-uniqueue',
-                Buffer.from(JSON.stringify({ action: "see" })),
+                Buffer.from('{}'),
                 { correlationId: corrId, replyTo: q.queue }
               );
             });
@@ -99,11 +99,38 @@ describe('hooks', function() {
                 // Send the request to SEE UNICORNS.
                 ch.sendToQueue(
                   'see-uniqueue',
-                  Buffer.from(JSON.stringify({ action: "see" })),
+                  Buffer.from('{}'),
                   { correlationId: corrId, replyTo: q.queue }
                 );
               });
             }, {noAck: true});
+          });
+        });
+      });
+    });
+    
+    describe('# ADD UNICORN', function() {
+      
+      it('should add a unicorn to the database', function(done) {
+        var q = 'add-uniqueue';
+        var data = {
+          id: 1,
+          name: 'TEST-1',
+          location: 'pasture'
+        };
+        
+        conn.createChannel().then(function(ch) {
+          return ch.assertQueue(q, {durable: true}).then(async function() {
+            return ch.sendToQueue(q, Buffer.from(JSON.stringify(data)));
+          }).then(function() {
+            db.query("SELECT * FROM unicorns;", function(err, res) {
+              if (err) throw err;
+
+              var result = JSON.parse(JSON.stringify(res));
+              assert.lengthOf(result, 1);
+              assert.deepInclude(result, data);
+              done();
+            });
           });
         });
       });

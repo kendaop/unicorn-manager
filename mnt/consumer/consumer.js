@@ -37,17 +37,13 @@ createAddUnicornConsumerChannel = function(conn) {
     console.log(" [*] AddUnicorn channel is waiting for messages.", q);
     ch.consume(q, function(msg) {
       var content = JSON.parse(msg.content);
+      console.log(" [x] Received %s", JSON.stringify(content));
 
-      if (content.hasOwnProperty("action") && 
-          content.action.toLowerCase() === 'add') 
-      {
-        console.log(" [x] Received %s", JSON.stringify(content));
-        queryDb(`
-          INSERT INTO unicorns (\`name\`, \`location\`)
-          VALUES ('${content.name}', '${content.location}');
-        `);
-        ch.ack(msg);
-      };
+      queryDb(`
+        INSERT INTO unicorns (\`name\`, \`location\`)
+        VALUES ('${content.name}', '${content.location}');
+      `);
+      ch.ack(msg);
     });
   });
 };
@@ -68,10 +64,7 @@ createMoveUnicornConsumerChannel = function(conn) {
         throw "Invalid JSON: " + JSON.stringify(msg.content);
       }
 
-      if (content.hasOwnProperty("action") && 
-          content.action.toLowerCase() === 'move' &&
-          content.hasOwnProperty("id")
-      ) {
+      if (content.hasOwnProperty("id")) {
         var newLocation = content.location.toLowerCase();
         var id = Number(content.id);
         
@@ -108,38 +101,34 @@ createSeeUnicornsConsumerChannel = function(conn) {
         throw "Invalid JSON: " + JSON.stringify(msg.content);
       }
       
-      if (content.hasOwnProperty("action") &&
-          content.action.toLowerCase() === "see"
-      ) {
-        db = mysql.createConnection({
-            host: 'database',
-            user: 'root',
-            password: 'example',
-            database: 'unicorn_manager'
-        });
-        
-        db.connect((err) => {
-          if (err) throw err;
-          
-          db.query(
-            "SELECT `id`, `name`, `location` FROM `unicorns`;", 
-            function(err, result, fields) {
-              if (err) throw err;
+      db = mysql.createConnection({
+          host: 'database',
+          user: 'root',
+          password: 'example',
+          database: 'unicorn_manager'
+      });
 
-              ch.sendToQueue(
-                msg.properties.replyTo,
-                Buffer.from(JSON.stringify(result)),
-                { correlationId: msg.properties.correlationId },
-                function(err, ok) {
-                  if (err) throw err;
-                }
-              );
-      
-              ch.ack(msg);
-            }
-          );
-        });
-      }
+      db.connect((err) => {
+        if (err) throw err;
+
+        db.query(
+          "SELECT `id`, `name`, `location` FROM `unicorns`;", 
+          function(err, result) {
+            if (err) throw err;
+
+            ch.sendToQueue(
+              msg.properties.replyTo,
+              Buffer.from(JSON.stringify(result)),
+              { correlationId: msg.properties.correlationId },
+              function(err, ok) {
+                if (err) throw err;
+              }
+            );
+
+            ch.ack(msg);
+          }
+        );
+      });
     });
   });
 };
