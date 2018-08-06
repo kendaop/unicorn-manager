@@ -98,7 +98,10 @@ Accepts one argument which, if any truthy value, will run the consumer process i
 `./scripts/consumer.sh -d`
 
 #### <a name="publisher.sh"></a>publisher.sh
-Sends messages to the RabbitMQ server queues, which will eventually get processed by the consumer.
+Sends messages to the RabbitMQ server queues, which will eventually get processed by the consumer. Each command designates an action, which is always one of _*ADD*_, _*MOVE*_, or _*SEE*_.
+* _*ADD*_ inserts a new unicorn into the database, at a specific location.
+* _*MOVE*_ moves an existing unicorn (designated by ID number) to a different location.
+* _*SEE*_ returns all information about all the unicorns. This is where you can find a unicorn's ID number, which is necessary for the _*MOVE*_ action.
 
 Accepts one **required** argument and up to two **optional** arguments.  
 
