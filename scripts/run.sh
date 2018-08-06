@@ -37,7 +37,7 @@ else
 
     echo 'Initializing database...'
     # Dirty hack to ensure mariadb is ready before trying to connect to it.
-    sleep 5
+    sleep 6
 
     # Initialize database
     docker exec -ti unicorn-manager_database_1 sh -c 'mysql -h localhost -u root -pexample unicorn_manager < /usr/local/unicorn/init.mysql'
