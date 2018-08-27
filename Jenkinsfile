@@ -1,7 +1,7 @@
 pipeline {
   agent {
     dockerfile {
-      filename 'dockerfile-tester'
+      filename 'dockerfile-consumer'
     }
 
   }
